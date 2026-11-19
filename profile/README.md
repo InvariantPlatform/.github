@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://invariant-platform.io"><picture><source srcset="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/hero.svg" type="image/svg+xml"><img src="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/hero.png" width="100%" alt="Invariant Platform: a control you cannot verify is not a control. A nightly posture check, nine invariants holding and one finding paged."></picture></a>
+  <a href="https://invariant-platform.io"><picture><source srcset="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/hero.svg" type="image/svg+xml"><img src="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/hero.png" width="100%" alt="Invariant Platform: a control you cannot verify is not a control."></picture></a>
 </p>
 
 <p align="center">
@@ -12,18 +12,54 @@
   <a href="https://invariant-platform.io/join/"><b>Join</b></a>
 </p>
 
-<p align="center"><picture><source srcset="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/stats.svg" type="image/svg+xml"><img src="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/stats.png" width="100%" alt="210 decisions, 18 invariants, 7 rebuilds, 2 restore drills, 2 failure domains"></picture></p>
+A property asserted in a document is not a property until something outside the system checks it, on a schedule, and pages when it stops being true. Invariant Platform is a small, security-first Kubernetes platform built on that rule: every claim on the site is one it checks, every night, from outside itself, and its only repair is a rebuild from a declaration.
 
-A property asserted in a document is not a property until something outside the system checks it, on a schedule, and pages when it stops being true. Invariant Platform is a small Kubernetes platform built on that rule: every claim on the site is one it checks, every night, from outside itself.
+| **210** | **19** | **7** | **2** | **2** |
+|:-:|:-:|:-:|:-:|:-:|
+| decisions<br><sub>numbered, never deleted</sub> | invariants<br><sub>re-asserted nightly</sub> | rebuilds<br><sub>from a declaration</sub> | restore drills<br><sub>passed, not assumed</sub> | failure domains<br><sub>and what survives each</sub> |
 
-<p align="center"><picture><source srcset="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/pillars.svg" type="image/svg+xml"><img src="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/pillars.png" width="100%" alt="Five properties: architecture modelled first; eighteen invariants checked nightly; rebuilt never repaired; observability beside the cluster; only signed artifacts deploy"></picture></p>
+## Every night, from outside the cluster
 
-<p align="center"><picture><source srcset="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/flow.svg" type="image/svg+xml"><img src="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/flow.png" width="100%" alt="A reviewed change, built and signed by one named workflow, held in a private registry, verified by the cluster before it applies. A git push alone deploys nothing."></picture></p>
+A real run, finding included. A failure pages; silence is a written-down gap.
 
-<p align="center"><picture><source srcset="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/register.svg" type="image/svg+xml"><img src="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/register.png" width="100%" alt="The decision register: every decision as one square, across twelve categories"></picture></p>
+```diff
+$ posture-check
++ ok    pod security: 19/19 namespaces enforced
++ ok    network policy: 19 namespaces default-deny
++ ok    admission: 2 policies, 2 enforcing Deny
++ ok    cluster-admin: 5 subjects, all expected
++ ok    flux: 5 kustomizations reconciling
++ ok    supply chain: signature verified, pinned identity
++ ok    credentials: 8 external secrets syncing
++ ok    origin lock: direct bypass refused (000)
++ ok    selinux: both hypervisors enforcing
+- FAIL  systemd degraded; unit not on the watch list
+```
 
-<p align="center">
-  <a href="https://invariant-platform.io/join/"><picture><source srcset="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/members.svg" type="image/svg+xml"><img src="https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets/members.png" width="100%" alt="The whole story is free. It just isn't anonymous. Join the organization."></picture></a>
-</p>
+## Five properties, each one checked
 
-<p align="center"><sub>Built and run by <a href="https://www.bradpenney.io">Brad Penney</a>. Membership is free: no cost, no seat count, no card, and leaving is one click.</sub></p>
+| Property | How it is held |
+|---|---|
+| **[Architecture](https://invariant-platform.io/architecture/)** | Every component is modelled before it exists. A component the model does not describe fails the build. |
+| **[Security posture](https://invariant-platform.io/security-posture/)** | Nineteen invariants, re-asserted nightly from outside the cluster. A failure pages; silence is a written-down gap. |
+| **[Resiliency](https://invariant-platform.io/resiliency/)** | No repair path. Anything broken is destroyed and rebuilt from a declaration, and every rebuild is measured. |
+| **[Observability](https://invariant-platform.io/observability/)** | Metrics, logs and alert rules live beside the cluster. A monitor inside the thing cannot report it gone. |
+| **[Supply chain](https://invariant-platform.io/supply-chain/)** | Nothing reaches the cluster except a signed artifact from one named workflow. A push deploys nothing. |
+
+## How a change reaches the cluster
+
+1. **A reviewed change**: signed commit, pinned versions; tests are a gate.
+2. **One named workflow**: builds once and signs keyless, with an SBOM and provenance.
+3. **A private registry**: immutable tags; nothing is ever called latest.
+4. **The cluster verifies**: the signature against one pinned identity, then applies and prunes.
+
+> [!IMPORTANT]
+> There is no path from `git push` to the cluster. A push deploys nothing; only a signed artifact from the one named workflow does.
+
+## The whole story is free. It just isn't anonymous.
+
+Members get field notes from real incidents, the full decision register (210 decisions in twelve categories, every one numbered, none deleted), and how every check is enforced. Membership costs nothing: no seat count, no card, and leaving is one click.
+
+**[Join the organization →](https://invariant-platform.io/join/)**
+
+<sub>Built and run by <a href="https://www.bradpenney.io">Brad Penney</a>.</sub>

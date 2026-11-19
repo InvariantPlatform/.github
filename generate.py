@@ -21,7 +21,7 @@ OUT = Path(__file__).resolve().parent / "profile"
 SITE = "https://invariant-platform.io"
 # From invariant-platform-site/site.config.ts (ADR-173: a number the platform
 # does not keep is a false claim). Update both together.
-STATS = [("210", "decisions", "numbered, never deleted"), ("18", "invariants", "re-asserted nightly"),
+STATS = [("210", "decisions", "numbered, never deleted"), ("19", "invariants", "re-asserted nightly"),
          ("7", "rebuilds", "from a declaration"), ("2", "restore drills", "passed, not assumed"),
          ("2", "failure domains", "and what survives each")]
 REGISTER = [("Topology and capacity", 20), ("Provisioning, roll and rebuild", 26), ("Networking and DNS", 21),
@@ -73,7 +73,7 @@ def doc(w: int, h: int, title: str, body: str, style: str = "", defs: str = "") 
             animation: flow 2.6s cubic-bezier(.5, 0, .5, 1) infinite; }}
     @keyframes flow {{ 0% {{ stroke-dashoffset: 14; stroke-opacity: 0; }} 12% {{ stroke-opacity: 1; }}
             88% {{ stroke-opacity: 1; }} 100% {{ stroke-dashoffset: -420; stroke-opacity: 0; }} }}
-    @media (prefers-reduced-motion: reduce) {{ * {{ animation: none !important; }} }}
+    @media (prefers-reduced-motion: reduce) {{ * {{ animation: none !important; }} .flow {{ display: none; }} }}
     """
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" role="img" aria-label="{esc(title)}">'
@@ -145,181 +145,45 @@ def logo(x: float, y: float, scale: float = 1.0) -> str:
 
 # ---------------------------------------------------------------------------
 def hero() -> str:
-    w, h = 1280, 460
+    """The one image: a banner, large type only, so it still reads at phone width.
+    The register's shape sits on the right as an LED matrix, one square per decision."""
+    w, h = 1280, 400
     style = """
-    .line { animation: in .35s ease-out backwards; }
-    @keyframes in { from { opacity: 0; transform: translateX(-6px); } }
-    .cursor { animation: blink 1.1s steps(1) infinite; }
-    @keyframes blink { 50% { opacity: 0; } }
+    .cell { animation: in .3s ease-out backwards; }
+    @keyframes in { from { opacity: 0; } }
     .pulse { animation: pulse 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
     @keyframes pulse { 50% { opacity: .35; } }
     """
-    # the posture signal: a trace that runs flat, spikes at each check, and
-    # carries on; the instrument's own heartbeat behind the headline
-    pts, x = [], 40.0
+    pts, x = [], 0.0
     beat = [0, -4, 6, -26, 30, -10, 0]
-    while x < 680:
-        pts.append((x, 432))
-        if int(x) % 160 == 40:
+    while x < w:
+        pts.append((x, 360))
+        if int(x) % 200 == 100:
             for k, dy in enumerate(beat):
-                pts.append((x + 6 + k * 5, 432 + dy))
+                pts.append((x + 6 + k * 5, 360 + dy))
             x += 40
         x += 20
     sig = "M " + " L ".join(f"{a:.0f} {b:.0f}" for a, b in pts)
-    ticks = "".join(f"M {xx} 452 L {xx} {448 if xx % 80 else 444} " for xx in range(40, 690, 10))
-    b = [f'<path d="{ticks}" stroke="#8b939e" stroke-opacity=".35"/>',
-         trace(sig, 0, pulse=True, marker=False),
-         logo(64, 56, 1.0),
-         f'<text x="128" y="96" class="mono" font-size="40" font-weight="600" letter-spacing="-1">invariant</text>',
-         f'<text x="352" y="96" class="label" font-size="15">PLATFORM</text>',
-         f'<text x="64" y="186" font-size="44" font-weight="700" letter-spacing="-1">A control you cannot</text>',
-         f'<text x="64" y="240" font-size="44" font-weight="700" letter-spacing="-1"><tspan fill="{AMBER}" filter="url(#glow)">verify</tspan> is not a control.</text>']
-    lede = ("A small, security-first Kubernetes platform that re-asserts its own posture every night, "
-            "from outside itself, and whose only repair is a rebuild from a declaration.")
-    for i, ln in enumerate(wrap(lede, 62)):
-        b.append(f'<text x="64" y="{292 + i * 26}" font-size="18" fill="#a3acb8">{esc(ln)}</text>')
-    # chips
+    b = [trace(sig, 0, pulse=True, marker=False),
+         logo(64, 52, 0.9),
+         f'<text x="122" y="88" class="mono" font-size="36" font-weight="600" letter-spacing="-1">invariant</text>',
+         f'<text x="326" y="88" class="label" font-size="15">PLATFORM</text>',
+         f'<text x="64" y="186" font-size="58" font-weight="700" letter-spacing="-1.5">A control you cannot</text>',
+         f'<text x="64" y="254" font-size="58" font-weight="700" letter-spacing="-1.5"><tspan fill="{AMBER}" filter="url(#glow)">verify</tspan> is not a control.</text>']
     cx = 64
     for label, hue in (("rebuilt, never repaired", 1), ("signed end to end", 2), ("checked nightly", 4)):
-        wd = len(label) * 8.2 + 30
-        b.append(f'<rect x="{cx}" y="366" width="{wd}" height="30" rx="2" fill="{HUES[hue]}" fill-opacity=".08" stroke="{HUES[hue]}" stroke-opacity=".55"/>'
-                 f'<rect x="{cx + 11}" y="377" width="8" height="8" fill="{HUES[hue]}" filter="url(#glow)" class="pulse"/>'
-                 f'<text x="{cx + 26}" y="386" class="mono" font-size="13" fill="{HUES[hue]}">{esc(label)}</text>')
+        wd = len(label) * 9.6 + 34
+        b.append(f'<rect x="{cx}" y="290" width="{wd}" height="34" rx="2" fill="{HUES[hue]}" fill-opacity=".08" stroke="{HUES[hue]}" stroke-opacity=".55"/>'
+                 f'<rect x="{cx + 12}" y="303" width="9" height="9" fill="{HUES[hue]}" filter="url(#glow)" class="pulse"/>'
+                 f'<text x="{cx + 29}" y="313" class="mono" font-size="15" fill="{HUES[hue]}">{esc(label)}</text>')
         cx += wd + 12
-    # terminal
-    tx, ty, tw, th = 712, 48, 520, 372
-    b.append(card(tx, ty, tw, th, 0, tag="CH-01 · POSTURE · NIGHTLY"))
-    b.append(f'<rect x="{tx + 3}" y="{ty + 1}" width="{tw - 4}" height="38" fill="#121820"/>'
-             f'<path d="M {tx + 3} {ty + 39} L {tx + tw - 1} {ty + 39}" stroke="{AMBER}" stroke-opacity=".3"/>')
-    for i, c in enumerate((ROSE, AMBER_L, EMERALD)):
-        b.append(f'<rect x="{tx + 20 + i * 18}" y="{ty + 15}" width="9" height="9" fill="{c}" filter="url(#glow)"/>')
-    b.append(f'<text x="{tx + 90}" y="{ty + 25}" class="mono" font-size="12.5" fill="#7c8794">from the host tier · read-only identity</text>')
-    b.append(f'<text x="{tx + 24}" y="{ty + 72}" class="mono" font-size="14"><tspan fill="{EMERALD}">$</tspan> posture-check</text>')
-    for i, (st, line) in enumerate(POSTURE):
-        y = ty + 100 + i * 24
-        ok = st == "ok"
-        col = EMERALD if ok else ROSE
-        tag = " ok " if ok else "FAIL"
-        b.append(f'<g class="line" style="animation-delay:{0.35 + i * 0.22:.2f}s">'
-                 f'<rect x="{tx + 22}" y="{y - 14}" width="42" height="19" rx="1" fill="{col}" fill-opacity=".14" stroke="{col}" stroke-opacity=".5"/>'
-                 f'<text x="{tx + 43}" y="{y}" class="mono" font-size="12" font-weight="700" fill="{col}" text-anchor="middle">{tag}</text>'
-                 f'<text x="{tx + 76}" y="{y}" class="mono" font-size="13" fill="{"#dbe2ea" if ok else "#fda4af"}">{esc(line)}</text></g>')
-    y = ty + 100 + len(POSTURE) * 24 + 10
-    d = 0.35 + len(POSTURE) * 0.22
-    b.append(f'<g class="line" style="animation-delay:{d:.2f}s"><text x="{tx + 24}" y="{y}" class="mono" font-size="13.5" fill="{AMBER_L}">'
-             f'9 of 10 shown hold · 1 finding, paged</text></g>')
-    b.append(f'<rect x="{tx + 24}" y="{y + 12}" width="9" height="16" fill="{AMBER}" class="cursor"/>')
-    return doc(w, h, "Invariant Platform: a control you cannot verify is not a control", "".join(b), style)
-
-
-def stats() -> str:
-    w, h = 1280, 170
-    b = []
-    cw, gap = 226, 22
-    for i, (n, label, sub) in enumerate(STATS):
-        x = 32 + i * (cw + gap)
-        hue = [0, 4, 1, 2, 3][i]
-        b.append(card(x, 30, cw, 112, hue))
-        b.append(f'<text x="{x + 22}" y="{26 + 54}" class="mono" font-size="40" font-weight="700" fill="{HUES[hue]}" filter="url(#glow)">{n}</text>')
-        b.append(f'<text x="{x + 24 + len(n) * 25 + 10}" y="{26 + 52}" class="mono" font-size="13" font-weight="600" letter-spacing=".08em">{esc(label.upper())}</text>')
-        b.append(f'<text x="{x + 22}" y="{26 + 88}" font-size="13.5" fill="#a3acb8">{esc(sub)}</text>')
-    return doc(w, h, "210 decisions, 18 invariants, 7 rebuilds, 2 restore drills, 2 failure domains", "".join(b))
-
-
-ICONS = {
-    # simple line icons on a 28-unit grid
-    "arch": '<rect x="2" y="2" width="10" height="10" rx="2"/><rect x="16" y="2" width="10" height="10" rx="2"/><rect x="9" y="16" width="10" height="10" rx="2"/><path d="M7 12 L14 16 M21 12 L14 16"/>',
-    "shield": '<path d="M14 2 L25 6 V14 C25 20 20 25 14 27 C8 25 3 20 3 14 V6 Z"/><path d="M9 14 L13 18 L20 10"/>',
-    "rebuild": '<path d="M24 14 A10 10 0 1 1 20 6"/><path d="M20 1 V7 H26"/>',
-    "pulse": '<path d="M2 15 H8 L11 7 L16 23 L19 15 H26"/>',
-    "chain": '<rect x="2" y="9" width="12" height="10" rx="5"/><rect x="14" y="9" width="12" height="10" rx="5"/><path d="M10 14 H18"/>',
-}
-PILLARS = [
-    ("Architecture", "arch", 1, "Every component is modelled before it exists. A component the model does not describe fails the build."),
-    ("Security posture", "shield", 3, "Eighteen invariants, re-asserted nightly from outside the cluster. A failure pages; silence is a written-down gap."),
-    ("Resiliency", "rebuild", 4, "No repair path. Anything broken is destroyed and rebuilt from a declaration, and every rebuild is measured."),
-    ("Observability", "pulse", 2, "Metrics, logs and alert rules live beside the cluster. A monitor inside the thing cannot report it gone."),
-    ("Supply chain", "chain", 0, "Nothing reaches the cluster except a signed artifact from one named workflow. A push deploys nothing."),
-]
-
-
-def pillars() -> str:
-    w, h = 1280, 330
-    b = [f'<text x="32" y="44" class="label">FIVE PROPERTIES · EACH ONE CHECKED, NOT CLAIMED</text>']
-    cw, gap = 226, 22
-    for i, (title, icon, hue, body) in enumerate(PILLARS):
-        x, y = 32 + i * (cw + gap), 70
-        c = HUES[hue]
-        b.append(card(x, y, cw, 222, hue, tag=f"P-{i + 1:02d}"))
-        b.append(f'<rect x="{x + 18}" y="{y + 22}" width="48" height="48" rx="2" fill="{c}" fill-opacity=".08" stroke="{c}" stroke-opacity=".5"/>')
-        b.append(f'<g transform="translate({x + 28} {y + 32})" fill="none" stroke="{c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">{ICONS[icon]}</g>')
-        b.append(f'<text x="{x + 22}" y="{y + 102}" class="mono" font-size="16.5" font-weight="700">{esc(title)}</text>')
-        for j, ln in enumerate(wrap(body, 27)):
-            b.append(f'<text x="{x + 22}" y="{y + 130 + j * 20}" font-size="13.5" fill="#a3acb8">{esc(ln)}</text>')
-    return doc(w, h, "Five properties: architecture, security posture, resiliency, observability, supply chain", "".join(b))
-
-
-def flow() -> str:
-    w, h = 1280, 360
-    steps = [
-        ("A reviewed change", "signed commit, pinned versions; tests are a gate", 5),
-        ("One named workflow", "builds once, signs keyless; SBOM + provenance", 2),
-        ("A private registry", "immutable tags; nothing is ever called latest", 0),
-        ("The cluster verifies", "signature against one pinned identity, then applies and prunes", 4),
-    ]
-    b = [f'<text x="32" y="44" class="label">HOW A CHANGE REACHES THE CLUSTER · ONE DIRECTION</text>']
-    cw, gap, y = 262, 64, 92
-    for i, (t, sub, hue) in enumerate(steps):
-        x = 32 + i * (cw + gap)
-        b.append(card(x, y, cw, 128, hue, tag=f"STAGE {i + 1}"))
-        b.append(f'<text x="{x + 22}" y="{y + 46}" class="mono" font-size="17" font-weight="700">{esc(t)}</text>')
-        for j, ln in enumerate(wrap(sub, 31)):
-            b.append(f'<text x="{x + 22}" y="{y + 74 + j * 19}" font-size="13.5" fill="#a3acb8">{esc(ln)}</text>')
-        if i:
-            x0, x1 = x - gap + 4, x - 8
-            b.append(trace(f"M {x0} {y + 64} L {x1} {y + 64}", 0))
-    # the path that does not exist
-    py = 290
-    b.append(trace(f"M 163 {y + 136} L 163 {py} L 1100 {py} L 1100 {y + 140}", 3, pulse=False, dashed=True))
-    b.append(f'<rect x="630" y="{py - 10}" width="20" height="20" rx="2" fill="#0b0d10" stroke="{ROSE}" stroke-width="1.6" filter="url(#glow)"/>'
-             f'<path d="M 636 {py - 4} L 644 {py + 4} M 644 {py - 4} L 636 {py + 4}" stroke="{ROSE}" stroke-width="2.2" stroke-linecap="square"/>')
-    b.append(f'<rect x="676" y="{py - 13}" width="476" height="26" rx="2" fill="#0b0d10"/>')
-    b.append(f'<text x="684" y="{py + 5}" class="mono" font-size="14" font-weight="600" fill="#fda4af">git push → cluster: no such path. A push deploys nothing.</text>')
-    return doc(w, h, "How a change reaches the cluster: reviewed change, named workflow, private registry, verifying cluster", "".join(b))
-
-
-def register() -> str:
-    cell, gap, label_w, row_h = 17, 4, 384, 28
-    w = 1280
-    h = 86 + len(REGISTER) * row_h + 40
-    b = [f'<text x="32" y="44" class="label">THE DECISION REGISTER · ONE SQUARE = ONE DECISION</text>',
-         f'<text x="{w - 32}" y="44" class="label" text-anchor="end">THE SHAPE IS PUBLIC · THE DECISIONS ARE FOR MEMBERS</text>']
-    y = 76
-    for i, (name, n) in enumerate(REGISTER):
-        b.append(f'<rect x="35" y="{y + 4}" width="10" height="10" fill="{HUES[i]}" filter="url(#glow)"/>')
-        b.append(f'<text x="56" y="{y + 14}" class="mono" font-size="12.5" fill="{HUES[i]}">{i + 1:02d}</text>')
-        b.append(f'<text x="86" y="{y + 14}" font-size="14">{esc(name)}</text>')
-        b.append(f'<text x="{label_w}" y="{y + 14}" class="mono" font-size="13" fill="#7c8794" text-anchor="end">{n}</text>')
+    cell, gap, x0, y0 = 13, 4, 770, 60
+    for i, (_, n) in enumerate(REGISTER):
         for j in range(n):
-            x = label_w + 20 + j * (cell + gap)
-            b.append(f'<rect x="{x}" y="{y}" width="{cell}" height="{cell}" rx="1.5" fill="url(#cell{i})" filter="url(#glow)" class="line" style="animation-delay:{(i * 0.05 + j * 0.012):.3f}s"/>')
-        y += row_h
-    b.append(f'<text x="{w - 32}" y="{h - 22}" class="mono" font-size="14" fill="{AMBER_L}" text-anchor="end">twelve categories · every entry numbered · nothing deleted</text>')
-    style = ".line { animation: in .3s ease-out backwards; } @keyframes in { from { opacity: 0; } }"
-    return doc(w, h, "The decision register: every decision, in twelve categories", "".join(b), style)
-
-
-def members() -> str:
-    w, h = 1280, 230
-    b = [card(32, 30, w - 64, 168, 0, tag="MEMBERSHIP · FREE"),
-         logo(70, 62, 1.25),
-         f'<text x="150" y="98" font-size="30" font-weight="700" letter-spacing="-.5">The whole story is free.</text>',
-         f'<text x="150" y="134" font-size="30" font-weight="700" letter-spacing="-.5" fill="{AMBER}">It just isn\'t anonymous.</text>',
-         f'<text x="150" y="168" font-size="15.5" fill="#a3acb8">Join the organization and leave an email: field notes, the full decision register, and how every check is enforced.</text>']
-    bx = w - 300
-    b.append(f'<rect x="{bx}" y="84" width="220" height="56" rx="2" fill="{AMBER}" filter="url(#glow)"/>'
-             f'<text x="{bx + 110}" y="119" class="mono" font-size="17" font-weight="700" fill="#0b0d10" text-anchor="middle">JOIN  →</text>')
-    return doc(w, h, "The whole story is free. It just isn't anonymous. Join.", "".join(b))
+            b.append(f'<rect x="{x0 + j * (cell + gap)}" y="{y0 + i * (cell + gap)}" width="{cell}" height="{cell}" rx="1" '
+                     f'fill="url(#cell{i})" fill-opacity=".85" class="cell" style="animation-delay:{(i * 0.04 + j * 0.01):.2f}s"/>')
+    b.append(f'<text x="{x0}" y="{y0 + len(REGISTER) * (cell + gap) + 22}" class="label">THE DECISION REGISTER · ONE SQUARE PER DECISION</text>')
+    return doc(w, h, "Invariant Platform: a control you cannot verify is not a control", "".join(b), style)
 
 
 RAW = "https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets"
@@ -332,8 +196,30 @@ def pic(name: str, alt: str) -> str:
             f'<img src="{RAW}/{name}.png" width="100%" alt="{alt}"></picture>')
 
 
+PILLARS = [
+    ("Architecture", "architecture", "Every component is modelled before it exists. A component the model does not describe fails the build."),
+    ("Security posture", "security-posture", "Nineteen invariants, re-asserted nightly from outside the cluster. A failure pages; silence is a written-down gap."),
+    ("Resiliency", "resiliency", "No repair path. Anything broken is destroyed and rebuilt from a declaration, and every rebuild is measured."),
+    ("Observability", "observability", "Metrics, logs and alert rules live beside the cluster. A monitor inside the thing cannot report it gone."),
+    ("Supply chain", "supply-chain", "Nothing reaches the cluster except a signed artifact from one named workflow. A push deploys nothing."),
+]
+FLOW = [
+    ("A reviewed change", "signed commit, pinned versions; tests are a gate"),
+    ("One named workflow", "builds once and signs keyless, with an SBOM and provenance"),
+    ("A private registry", "immutable tags; nothing is ever called latest"),
+    ("The cluster verifies", "the signature against one pinned identity, then applies and prunes"),
+]
+STATS_TABLE = ("| " + " | ".join(f"**{n}**" for n, _, _ in STATS) + " |\n|"
+               + ":-:|" * len(STATS) + "\n| "
+               + " | ".join(f"{label}<br><sub>{sub}</sub>" for _, label, sub in STATS) + " |")
+POSTURE_BLOCK = "\n".join(("+ ok    " if st == "ok" else "- FAIL  ") + line for st, line in POSTURE)
+PILLAR_ROWS = "\n".join(f"| **[{t}]({SITE}/{slug}/)** | {body} |" for t, slug, body in PILLARS)
+FLOW_STEPS = "\n".join(f"{i}. **{t}**: {sub}." for i, (t, sub) in enumerate(FLOW, 1))
+DECISIONS, CATEGORIES = STATS[0][0], "twelve"
+
+
 README = f"""<p align="center">
-  <a href="{SITE}">{pic('hero', 'Invariant Platform: a control you cannot verify is not a control. A nightly posture check, nine invariants holding and one finding paged.')}</a>
+  <a href="{SITE}">{pic('hero', 'Invariant Platform: a control you cannot verify is not a control.')}</a>
 </p>
 
 <p align="center">
@@ -346,31 +232,49 @@ README = f"""<p align="center">
   <a href="{SITE}/join/"><b>Join</b></a>
 </p>
 
-<p align="center">{pic('stats', '210 decisions, 18 invariants, 7 rebuilds, 2 restore drills, 2 failure domains')}</p>
+A property asserted in a document is not a property until something outside the system checks it, on a schedule, and pages when it stops being true. Invariant Platform is a small, security-first Kubernetes platform built on that rule: every claim on the site is one it checks, every night, from outside itself, and its only repair is a rebuild from a declaration.
 
-A property asserted in a document is not a property until something outside the system checks it, on a schedule, and pages when it stops being true. Invariant Platform is a small Kubernetes platform built on that rule: every claim on the site is one it checks, every night, from outside itself.
+{STATS_TABLE}
 
-<p align="center">{pic('pillars', 'Five properties: architecture modelled first; eighteen invariants checked nightly; rebuilt never repaired; observability beside the cluster; only signed artifacts deploy')}</p>
+## Every night, from outside the cluster
 
-<p align="center">{pic('flow', 'A reviewed change, built and signed by one named workflow, held in a private registry, verified by the cluster before it applies. A git push alone deploys nothing.')}</p>
+A real run, finding included. A failure pages; silence is a written-down gap.
 
-<p align="center">{pic('register', 'The decision register: every decision as one square, across twelve categories')}</p>
+```diff
+$ posture-check
+{POSTURE_BLOCK}
+```
 
-<p align="center">
-  <a href="{SITE}/join/">{pic('members', 'The whole story is free. It just isn\'t anonymous. Join the organization.')}</a>
-</p>
+## Five properties, each one checked
 
-<p align="center"><sub>Built and run by <a href="https://www.bradpenney.io">Brad Penney</a>. Membership is free: no cost, no seat count, no card, and leaving is one click.</sub></p>
+| Property | How it is held |
+|---|---|
+{PILLAR_ROWS}
+
+## How a change reaches the cluster
+
+{FLOW_STEPS}
+
+> [!IMPORTANT]
+> There is no path from `git push` to the cluster. A push deploys nothing; only a signed artifact from the one named workflow does.
+
+## The whole story is free. It just isn't anonymous.
+
+Members get field notes from real incidents, the full decision register ({DECISIONS} decisions in {CATEGORIES} categories, every one numbered, none deleted), and how every check is enforced. Membership costs nothing: no seat count, no card, and leaving is one click.
+
+**[Join the organization →]({SITE}/join/)**
+
+<sub>Built and run by <a href="https://www.bradpenney.io">Brad Penney</a>.</sub>
 """
 
 
 def main() -> None:
     assets = OUT / "assets"
     assets.mkdir(parents=True, exist_ok=True)
-    for name, fn in (("hero", hero), ("stats", stats), ("pillars", pillars), ("flow", flow), ("register", register), ("members", members)):
+    for name, fn in (("hero", hero),):
         (assets / f"{name}.svg").write_text(fn())
     (OUT / "README.md").write_text(README)
-    print(f"wrote {OUT / 'README.md'} and 6 SVGs")
+    print(f"wrote {OUT / 'README.md'} and the banner SVG")
 
 
 if __name__ == "__main__":
