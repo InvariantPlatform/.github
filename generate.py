@@ -3,8 +3,11 @@
     python3 generate.py          # writes profile/README.md and profile/assets/*.svg
 
 Standard library only. Every claim and number here is one the public site
-(invariant-platform.io) already makes; STATS and REGISTER are copied from its
-site.config.ts and must move with it. Nothing names a machine or an address.
+(invariant-platform.io) already makes. REGISTER is read from the site
+repository's content/register-shape.json (generated from the private index),
+and the decision total is its sum, so the two sites cannot disagree. There is
+no invariant count: only the live nightly run states one. Nothing names a
+machine or an address.
 
 The SVGs are shown by GitHub through <img>, so each one is self-contained:
 its own styles, no web fonts (system fallbacks), no script. Animations are
@@ -14,21 +17,21 @@ CSS, play once on load, and stop for readers who prefer reduced motion.
 from __future__ import annotations
 
 import html
+import json
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent / "profile"
 
 SITE = "https://invariant-platform.io"
-# From invariant-platform-site/site.config.ts (ADR-173: a number the platform
-# does not keep is a false claim). Update both together.
-STATS = [("210", "decisions", "numbered, never deleted"), ("19", "invariants", "re-asserted nightly"),
+# The register's shape, from the site repository (scripts/register-shape.mjs
+# there writes it). A missing file is an error, never a stale fallback.
+_SHAPE = Path(__file__).resolve().parent.parent / "invariant-platform-site" / "content" / "register-shape.json"
+REGISTER = [(c["name"], c["n"]) for c in json.loads(_SHAPE.read_text())]
+DECISION_COUNT = sum(n for _, n in REGISTER)
+# Kept by the platform and stated on the site (site.config.ts, ADR-173).
+STATS = [(str(DECISION_COUNT), "decisions", "numbered, never deleted"),
          ("7", "rebuilds", "from a declaration"), ("2", "restore drills", "passed, not assumed"),
          ("2", "failure domains", "and what survives each")]
-REGISTER = [("Topology and capacity", 20), ("Provisioning, roll and rebuild", 26), ("Networking and DNS", 21),
-            ("Security and admission", 23), ("Secrets and identity", 8), ("Supply chain and releases", 17),
-            ("GitOps and config delivery", 9), ("Storage, backup and disaster recovery", 17),
-            ("Observability and alerting", 26), ("Workloads and migrations", 10), ("Engineering practice", 26),
-            ("Site and funnel", 5)]
 # A real nightly run, finding included (content/home.ts postureRun).
 POSTURE = [
     ("ok", "pod security: 19/19 namespaces enforced"),
@@ -168,8 +171,8 @@ def hero() -> str:
          logo(64, 52, 0.9),
          f'<text x="122" y="88" class="mono" font-size="36" font-weight="600" letter-spacing="-1">invariant</text>',
          f'<text x="326" y="88" class="label" font-size="15">PLATFORM</text>',
-         f'<text x="64" y="186" font-size="58" font-weight="700" letter-spacing="-1.5">A control you cannot</text>',
-         f'<text x="64" y="254" font-size="58" font-weight="700" letter-spacing="-1.5"><tspan fill="{AMBER}" filter="url(#glow)">verify</tspan> is not a control.</text>']
+         f'<text x="64" y="186" font-size="52" font-weight="700" letter-spacing="-1.5">A security posture that</text>',
+         f'<text x="64" y="250" font-size="52" font-weight="700" letter-spacing="-1.5"><tspan fill="{AMBER}" filter="url(#glow)">proves</tspan> itself.</text>']
     cx = 64
     for label, hue in (("rebuilt, never repaired", 1), ("signed end to end", 2), ("checked nightly", 4)):
         wd = len(label) * 9.6 + 34
@@ -183,7 +186,7 @@ def hero() -> str:
             b.append(f'<rect x="{x0 + j * (cell + gap)}" y="{y0 + i * (cell + gap)}" width="{cell}" height="{cell}" rx="1" '
                      f'fill="url(#cell{i})" fill-opacity=".85" class="cell" style="animation-delay:{(i * 0.04 + j * 0.01):.2f}s"/>')
     b.append(f'<text x="{x0}" y="{y0 + len(REGISTER) * (cell + gap) + 22}" class="label">THE DECISION REGISTER · ONE SQUARE PER DECISION</text>')
-    return doc(w, h, "Invariant Platform: a control you cannot verify is not a control", "".join(b), style)
+    return doc(w, h, "Invariant Platform: a security posture that proves itself", "".join(b), style)
 
 
 RAW = "https://raw.githubusercontent.com/InvariantPlatform/.github/main/profile/assets"
@@ -198,7 +201,7 @@ def pic(name: str, alt: str) -> str:
 
 PILLARS = [
     ("Architecture", "architecture", "Every component is modelled before it exists. A component the model does not describe fails the build."),
-    ("Security posture", "security-posture", "Nineteen invariants, re-asserted nightly from outside the cluster. A failure pages; silence is a written-down gap."),
+    ("Security posture", "security-posture", "Every invariant, re-asserted nightly from outside the cluster. A failure pages; silence is a written-down gap."),
     ("Resiliency", "resiliency", "No repair path. Anything broken is destroyed and rebuilt from a declaration, and every rebuild is measured."),
     ("Observability", "observability", "Metrics, logs and alert rules live beside the cluster. A monitor inside the thing cannot report it gone."),
     ("Supply chain", "supply-chain", "Nothing reaches the cluster except a signed artifact from one named workflow. A push deploys nothing."),
@@ -215,11 +218,11 @@ STATS_TABLE = ("| " + " | ".join(f"**{n}**" for n, _, _ in STATS) + " |\n|"
 POSTURE_BLOCK = "\n".join(("+ ok    " if st == "ok" else "- FAIL  ") + line for st, line in POSTURE)
 PILLAR_ROWS = "\n".join(f"| **[{t}]({SITE}/{slug}/)** | {body} |" for t, slug, body in PILLARS)
 FLOW_STEPS = "\n".join(f"{i}. **{t}**: {sub}." for i, (t, sub) in enumerate(FLOW, 1))
-DECISIONS, CATEGORIES = STATS[0][0], "twelve"
+CATEGORIES = len(REGISTER)
 
 
 README = f"""<p align="center">
-  <a href="{SITE}">{pic('hero', 'Invariant Platform: a control you cannot verify is not a control.')}</a>
+  <a href="{SITE}">{pic('hero', 'Invariant Platform: a security posture that proves itself.')}</a>
 </p>
 
 <p align="center">
@@ -232,7 +235,7 @@ README = f"""<p align="center">
   <a href="{SITE}/join/"><b>Join</b></a>
 </p>
 
-A property asserted in a document is not a property until something outside the system checks it, on a schedule, and pages when it stops being true. Invariant Platform is a small, security-first Kubernetes platform built on that rule: every claim on the site is one it checks, every night, from outside itself, and its only repair is a rebuild from a declaration.
+Invariant Platform is a security-first Kubernetes platform that re-asserts its own security posture every night, from outside itself, and whose only repair is a rebuild from a declaration. Every property it claims is one it checks. The checks ask the cluster's own API and compare the answer with the declaration, not with a list of machines, so they ask the same questions of five nodes as of a thousand.
 
 {STATS_TABLE}
 
@@ -260,9 +263,9 @@ $ posture-check
 
 ## The whole story is free. It just isn't anonymous.
 
-Members get field notes from real incidents, the full decision register ({DECISIONS} decisions in {CATEGORIES} categories, every one numbered, none deleted), and how every check is enforced. Membership costs nothing: no seat count, no card, and leaving is one click.
+Members get a field note from a real incident every Thursday, the decision register ({DECISION_COUNT} decisions in {CATEGORIES} categories, every one numbered, none deleted, released a few each week), the architecture views, and read access to the platform's source. Membership costs nothing: no seat count, no card, and leaving is one click. It opens soon.
 
-**[Join the organization →]({SITE}/join/)**
+**[Membership →]({SITE}/join/)**
 
 <sub>Built and run by <a href="https://www.bradpenney.io">Brad Penney</a>.</sub>
 """
